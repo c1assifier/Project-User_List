@@ -1,20 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react';
+import { ErrorModal } from './ErrorModal';
 
 const AddUser = ({ user, onAdd }) => {
-  // Используем useState для управления состоянием формы и отображением email
   const [formState, setFormState] = useState({
     first_name: '',
     last_name: '',
     bio: '',
     age: 1,
     email: '',
-  })
-  const [displayEmail, setDisplayEmail] = useState('') // Состояние для отображения email
+  });
+  
+  const [displayEmail, setDisplayEmail] = useState('');
+  const [error, setError] = useState();
 
-  // Создаем ссылку на форму с помощью useRef
-  const formRef = useRef(null)
+  const formRef = useRef(null);
 
-  // Используем useEffect для заполнения формы данными пользователя при загрузке компонента или изменении пользователя
   useEffect(() => {
     if (user) {
       setFormState({
@@ -22,84 +22,123 @@ const AddUser = ({ user, onAdd }) => {
         last_name: user.last_name || '',
         bio: user.bio || '',
         age: user.age || 1,
-        email: user.email || '', // Заполняем email
+        email: user.email || '',
       });
-      setDisplayEmail(user.email || '') // Устанавливаем отображение email
+      setDisplayEmail(user.email || '');
     }
-  }, [user]) // Массив зависимостей содержит user, чтобы эффект срабатывал при изменении пользователя
+  }, [user]);
 
-  // Функция для обработки изменений в полях формы
   const handleChange = (e) => {
-    const { name, value } = e.target
-    if (name === 'age' && value < 0) return
-    setFormState((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    if (name === 'age' && value < 0) return;
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+  const errorHandler = () => {
+    setError(false)
+  } // Очищаем ошибку после успешного добавления
+  
 
-  // Функция для обработки отправки формы
-  const handleSubmit = () => {
-    // Сбрасываем форму
-    formRef.current.reset()
+  const handleSubmit = (e) => {
 
-    // Создаем объект пользователя на основе состояния формы
-    const userToAdd = { ...formState } //spread
-    if (user) {
-      userToAdd.id = user.id// Если пользователь существует, добавляем его id
+    e.preventDefault()
+    
+    // Валидация возраста
+    if (formState.age <= 0) {
+      setError({
+        title: 'Invalid Age',
+        message: 'Age must be a positive number.',
+      });
+      return;
     }
-    onAdd(userToAdd) // Вызываем функцию onAdd, передавая нового пользователя
+    
 
-    // Устанавливаем отображаемый email
-    setDisplayEmail(formState.email)
+    // Валидация email
+    if (!formState.email.includes('@')) {
+      setError({
+        title: 'Invalid Email',
+        message: 'Please enter a valid email address.',
+      });
+      return;
+    }
+    
 
-    // Сбрасываем состояние формы
+    // Сбрасываем форму
+    formRef.current.reset();
+
+    const userToAdd = { ...formState };
+    if (user) {
+      userToAdd.id = user.id;
+    }
+    onAdd(userToAdd);
+
+    setDisplayEmail(formState.email); 
+
     setFormState({
       first_name: '',
       last_name: '',
       bio: '',
       age: 1,
       email: '',
-    })
-  }
+    });
+    
+    
+  };
 
   return (
     <div>
+      {error && (
+        <ErrorModal 
+          onCloseModal = {errorHandler}
+          title = {error.title} 
+          message = {error.message} 
+          
+        />
+      )}
+
       <form ref={formRef}>
         <input
           name="first_name"
           placeholder="First name"
-          value={formState.first_name} 
-          onChange={handleChange} // Обрабатываем изменение поля
+          value={formState.first_name}
+          onChange={handleChange}
         />
         <input
           name="last_name"
           placeholder="Last Name"
           value={formState.last_name}
-          onChange={handleChange} // Обрабатываем изменение поля
+          onChange={handleChange}
         />
         <textarea
           name="bio"
           placeholder="Bio"
           value={formState.bio}
-          onChange={handleChange} // Обрабатываем изменение текстовой области
+          onChange={handleChange}
         />
         <input
           name="age"
           placeholder="Age"
           type="number"
           value={formState.age}
-          onChange={handleChange} // Обрабатываем изменение поля
+          onChange={handleChange}
         />
         <input
           name="email"
           placeholder="e-mail"
           value={formState.email}
-          onChange={handleChange} // Обрабатываем изменение поля
+          onChange={handleChange}
         />
-        <button type="button" onClick={handleSubmit}>Add</button>
+        <button type="button" onClick={handleSubmit}>
+          Add
+        </button>
       </form>
-      <div>
-      </div>
+      
+      {displayEmail && (
+        <div>
+          <p>User with email <strong>{displayEmail}</strong> was successfully added!</p>
+        </div>
+      )}
     </div>
-  )
-}
+  );
+};
 
-export default AddUser
+export default AddUser;
