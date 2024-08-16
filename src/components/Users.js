@@ -18,7 +18,7 @@ const Users = ({ users, onEdit, onDelete }) => {
   } else {
     return (
       <div className="user">
-        <h3>Пользователей нет</h3>
+        <h3>No users</h3>
       </div>
     )
   }

@@ -4,7 +4,7 @@ const EditUser = ({ user, onEdit }) => {
     onEdit(user)
   }
 
-  return <button onClick={handleEdit}>Edit</button>
+  return <button onClick={handleEdit}>Edit=</button>
 }
 
 export default EditUser
